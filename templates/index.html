@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Risk Prediction</title>
+    <script>
+        async function predictRisk() {
+            const heartRate = parseFloat(document.getElementById("heart_rate").value);
+            const respiratoryRate = parseFloat(document.getElementById("respiratory_rate").value);
+            const bodyTemperature = parseFloat(document.getElementById("body_temperature").value);
+            const oxygenSaturation = parseFloat(document.getElementById("oxygen_saturation").value);
+            const age = parseFloat(document.getElementById("age").value);
+            const gender = parseInt(document.getElementById("gender").value); // 0: Female, 1: Male
+            const derivedHRV = parseFloat(document.getElementById("derived_hrv").value);
+            const derivedPulsePressure = parseFloat(document.getElementById("derived_pulse_pressure").value);
+            const derivedBMI = parseFloat(document.getElementById("derived_bmi").value);
+            const derivedMAP = parseFloat(document.getElementById("derived_map").value);
+
+            const inputData = {
+                features: [heartRate, respiratoryRate, bodyTemperature, oxygenSaturation, age, gender, derivedHRV, derivedPulsePressure, derivedBMI, derivedMAP]
+            };
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(inputData),
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    document.getElementById("result").innerHTML = `<span style="color: red;">Error: ${result.error}</span>`;
+                } else {
+                    document.getElementById("result").innerHTML = `<strong>Predicted Risk Category:</strong> ${result.risk_category}`;
+                }
+            } catch (error) {
+                document.getElementById("result").innerHTML = `<span style="color: red;">Request failed: ${error}</span>`;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h2>Health Risk Prediction</h2>
+    <form onsubmit="event.preventDefault(); predictRisk();">
+        <label>Heart Rate:</label>
+        <input type="number" id="heart_rate" step="0.1" required><br><br>
+
+        <label>Respiratory Rate:</label>
+        <input type="number" id="respiratory_rate" step="0.1" required><br><br>
+
+        <label>Body Temperature (°C):</label>
+        <input type="number" id="body_temperature" step="0.1" required><br><br>
+
+        <label>Oxygen Saturation (%):</label>
+        <input type="number" id="oxygen_saturation" step="0.1" required><br><br>
+
+        <label>Age:</label>
+        <input type="number" id="age" required><br><br>
+
+        <label>Gender:</label>
+        <select id="gender">
+            <option value="0">Female</option>
+            <option value="1">Male</option>
+        </select><br><br>
+
+        <label>Derived HRV:</label>
+        <input type="number" id="derived_hrv" step="0.1" required><br><br>
+
+        <label>Derived Pulse Pressure:</label>
+        <input type="number" id="derived_pulse_pressure" step="0.1" required><br><br>
+
+        <label>Derived BMI:</label>
+        <input type="number" id="derived_bmi" step="0.1" required><br><br>
+
+        <label>Derived MAP:</label>
+        <input type="number" id="derived_map" step="0.1" required><br><br>
+
+        <button type="submit">Predict</button>
+    </form>
+
+    <h3 id="result"></h3>
+</body>
+</html>
