@@ -3,6 +3,7 @@ from flask_cors import CORS  # Import CORS
 from joblib import load
 import numpy as np
 import pandas as pd
+import os
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -43,6 +44,8 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
