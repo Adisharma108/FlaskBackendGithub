@@ -44,13 +44,45 @@ def predict():
             return jsonify({"error": "Invalid input. Ensure all required fields are provided."}), 400
 
         input_df = pd.DataFrame([features], columns=feature_names)
+
+        # Extract individual values
+        heart_rate = float(input_df["Heart Rate"][0])
+        resp_rate = float(input_df["Respiratory Rate"][0])
+        temperature = float(input_df["Body Temperature"][0])
+        oxygen = float(input_df["Oxygen Saturation"][0])
+        hrv = float(input_df["Derived_HRV"][0])
+        pulse_pressure = float(input_df["Derived_Pulse_Pressure"][0])
+        bmi = float(input_df["Derived_BMI"][0])
+        map_val = float(input_df["Derived_MAP"][0])
+
+        # Rule-based check (from parameters.pdf)
+        rule_unhealthy = (
+            heart_rate > 105 or heart_rate < 60 or
+            resp_rate > 21 or resp_rate < 10 or
+            temperature > 40.2 or temperature < 35.1 or
+            oxygen < 94 or
+            hrv < 19 or
+            pulse_pressure < 36 or pulse_pressure > 62 or
+            bmi >= 30 or bmi < 18.5 or
+            map_val < 70 or map_val > 100
+        )
+
+        # ML Prediction
         scaled_features = scaler.transform(input_df)
         prediction = model.predict(scaled_features)
-        risk_category = "Healthy" if prediction[0] == 0 else "Unhealthy"
+        model_risk = "Healthy" if prediction[0] == 0 else "Unhealthy"
+        # print("Input:", input_df.to_dict())
+        # print("Rule Unhealthy:", rule_unhealthy)
+        # print("model prediction:", prediction[0])
+        # print("Model Prediction:", model_risk)
 
-        return jsonify({"risk_category": risk_category})
+        # Final Decision
+        final_risk = "Unhealthy" if rule_unhealthy else model_risk
+
+        return jsonify({"risk_category": final_risk})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/register/doctor', methods=['POST'])
